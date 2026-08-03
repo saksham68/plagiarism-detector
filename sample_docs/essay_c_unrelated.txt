@@ -1,0 +1,16 @@
+Photosynthesis is the process by which green plants, algae, and some
+bacteria convert light energy into chemical energy stored in glucose. This
+process takes place primarily in the chloroplasts of plant cells, where the
+pigment chlorophyll absorbs sunlight, mostly in the red and blue wavelength
+ranges, while reflecting green light, which is why most plants appear
+green to the human eye.
+
+The overall reaction can be summarized as carbon dioxide and water, in the
+presence of light energy, being converted into glucose and oxygen. This
+oxygen is released into the atmosphere as a byproduct and is essential for
+the survival of most aerobic organisms on Earth, including humans.
+
+Photosynthesis is typically divided into two stages: the light-dependent
+reactions, which occur in the thylakoid membrane, and the light-independent
+reactions, also known as the Calvin cycle, which occur in the stroma of the
+chloroplast.

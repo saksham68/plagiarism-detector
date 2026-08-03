@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casefile — Similarity Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="stamp">MH·LSH</div>
+    <div class="title-block">
+      <h1>Casefile</h1>
+      <p class="subtitle">Near-duplicate submission detector — MinHash &amp; LSH</p>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="panel intake">
+    <h2><span class="eyebrow">01</span> Submit a document</h2>
+    <form id="upload-form">
+      <label>
+        Filename
+        <input type="text" id="f-filename" placeholder="essay_042.txt" required>
+      </label>
+      <label>
+        Author <span class="optional">(optional)</span>
+        <input type="text" id="f-author" placeholder="Student name or ID">
+      </label>
+      <label>
+        Text
+        <textarea id="f-text" rows="10" placeholder="Paste submission text here…" required></textarea>
+      </label>
+      <button type="submit">Run comparison</button>
+      <p class="result-line" id="upload-result"></p>
+    </form>
+  </section>
+
+  <section class="panel ledger">
+    <h2><span class="eyebrow">02</span> Efficiency ledger</h2>
+    <div class="stat-row">
+      <div class="stat">
+        <span class="stat-value" id="stat-docs">0</span>
+        <span class="stat-label">documents</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="stat-possible">0</span>
+        <span class="stat-label">possible pairs (N²)</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value flag" id="stat-done">0</span>
+        <span class="stat-label">pairs actually compared</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value red" id="stat-flagged">0</span>
+        <span class="stat-label">flagged as similar</span>
+      </div>
+    </div>
+    <p class="micro-note">LSH threshold ≈ <span id="stat-threshold">–</span> · only candidates sharing an LSH bucket are ever compared</p>
+  </section>
+
+  <section class="panel matches">
+    <h2><span class="eyebrow">03</span> Flagged pairs</h2>
+    <div id="matches-list" class="matches-list">
+      <p class="empty">No flagged pairs yet — submit at least two overlapping documents.</p>
+    </div>
+  </section>
+
+  <section class="panel documents">
+    <h2><span class="eyebrow">04</span> Submitted documents</h2>
+    <div id="documents-list" class="documents-list">
+      <p class="empty">Nothing submitted yet.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <p>Shingles → MinHash signature → LSH bands → candidate pairs → estimated Jaccard similarity</p>
+</footer>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

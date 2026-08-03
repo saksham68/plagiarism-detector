@@ -1,0 +1,18 @@
+The rise of distributed systems has fundamentally changed how engineers
+think about reliability. In a single machine, failure is binary: the
+process is running or it has crashed. In a distributed system, failure is
+partial. Some nodes may be up while others are down, and the network
+connecting them may be slow, congested, or entirely partitioned. This
+partial failure model is what makes distributed systems so difficult to
+reason about.
+
+Consensus protocols like Paxos and Raft exist precisely to hide this
+complexity from application developers. They allow a cluster of machines to
+agree on a single value even when some of the machines crash or the network
+misbehaves, so long as a majority of nodes remain reachable. This majority
+requirement, often called a quorum, is the foundation of most highly
+available systems built today.
+
+Understanding these tradeoffs is essential for any engineer building
+systems that need to survive real-world failure conditions, and not just
+the happy path tested in a local development environment.
