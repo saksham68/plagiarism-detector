@@ -63,16 +63,20 @@ def get_conn():
 def init_db():
     conn = get_conn()
     conn.executescript(SCHEMA)
+    try:
+        conn.execute("ALTER TABLE documents ADD COLUMN session_id TEXT DEFAULT 'anonymous'")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
     conn.close()
 
 
-def insert_document(filename, author, raw_text, shingle_count, signature):
+def insert_document(filename, author, raw_text, shingle_count, signature, session_id="anonymous"):
     conn = get_conn()
     cur = conn.execute(
-        """INSERT INTO documents (filename, author, raw_text, shingle_count, signature)
-           VALUES (?, ?, ?, ?, ?)""",
-        (filename, author, raw_text, shingle_count, json.dumps(signature)),
+        """INSERT INTO documents (filename, author, raw_text, shingle_count, signature, session_id)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (filename, author, raw_text, shingle_count, json.dumps(signature), session_id),
     )
     doc_id = cur.lastrowid
     conn.commit()
@@ -91,12 +95,13 @@ def insert_bucket_entries(entries):
     conn.close()
 
 
-def find_bucket_matches(band_index, bucket_key, exclude_doc_id):
+def find_bucket_matches(band_index, bucket_key, exclude_doc_id, session_id="anonymous"):
     conn = get_conn()
     rows = conn.execute(
-        """SELECT DISTINCT document_id FROM lsh_buckets
-           WHERE band_index = ? AND bucket_key = ? AND document_id != ?""",
-        (band_index, bucket_key, exclude_doc_id),
+        """SELECT DISTINCT l.document_id FROM lsh_buckets l
+           JOIN documents d ON l.document_id = d.id
+           WHERE l.band_index = ? AND l.bucket_key = ? AND l.document_id != ? AND d.session_id = ?""",
+        (band_index, bucket_key, exclude_doc_id, session_id),
     ).fetchall()
     conn.close()
     return [r["document_id"] for r in rows]
@@ -109,10 +114,11 @@ def get_document(doc_id):
     return row
 
 
-def get_all_documents():
+def get_all_documents(session_id="anonymous"):
     conn = get_conn()
     rows = conn.execute(
-        "SELECT id, filename, author, shingle_count, uploaded_at FROM documents ORDER BY id DESC"
+        "SELECT id, filename, author, shingle_count, uploaded_at FROM documents WHERE session_id = ? ORDER BY id DESC",
+        (session_id,)
     ).fetchall()
     conn.close()
     return rows
@@ -148,27 +154,34 @@ def get_matches_for_document(doc_id):
     return rows
 
 
-def get_all_flagged_matches():
+def get_all_flagged_matches(session_id="anonymous"):
     conn = get_conn()
     rows = conn.execute(
         """SELECT sr.*, da.filename AS a_filename, db.filename AS b_filename
            FROM similarity_results sr
            JOIN documents da ON da.id = sr.doc_a_id
            JOIN documents db ON db.id = sr.doc_b_id
-           WHERE sr.flagged = 1
-           ORDER BY sr.jaccard_estimate DESC"""
+           WHERE sr.flagged = 1 AND da.session_id = ?
+           ORDER BY sr.jaccard_estimate DESC""",
+        (session_id,)
     ).fetchall()
     conn.close()
     return rows
 
 
-def get_stats():
+def get_stats(session_id="anonymous"):
     conn = get_conn()
-    doc_count = conn.execute("SELECT COUNT(*) c FROM documents").fetchone()["c"]
-    comparisons_done = conn.execute("SELECT COUNT(*) c FROM similarity_results").fetchone()["c"]
-    flagged_count = conn.execute(
-        "SELECT COUNT(*) c FROM similarity_results WHERE flagged = 1"
-    ).fetchone()["c"]
+    doc_count = conn.execute("SELECT COUNT(*) c FROM documents WHERE session_id = ?", (session_id,)).fetchone()["c"]
+    comparisons_done = conn.execute("""
+        SELECT COUNT(*) c FROM similarity_results sr
+        JOIN documents d ON sr.doc_a_id = d.id
+        WHERE d.session_id = ?
+    """, (session_id,)).fetchone()["c"]
+    flagged_count = conn.execute("""
+        SELECT COUNT(*) c FROM similarity_results sr
+        JOIN documents d ON sr.doc_a_id = d.id
+        WHERE sr.flagged = 1 AND d.session_id = ?
+    """, (session_id,)).fetchone()["c"]
     conn.close()
     max_possible = doc_count * (doc_count - 1) // 2
     return {

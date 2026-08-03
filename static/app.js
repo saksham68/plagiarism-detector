@@ -1,7 +1,13 @@
 const API = "/api";
 
+let SESSION_ID = localStorage.getItem("session_id");
+if (!SESSION_ID) {
+  SESSION_ID = "sess_" + Math.random().toString(36).substring(2, 12);
+  localStorage.setItem("session_id", SESSION_ID);
+}
+
 async function refreshStats() {
-  const res = await fetch(`${API}/stats`);
+  const res = await fetch(`${API}/stats?session_id=${SESSION_ID}`);
   const s = await res.json();
   document.getElementById("stat-docs").textContent = s.documents;
   document.getElementById("stat-possible").textContent = s.max_possible_pairs;
@@ -16,7 +22,7 @@ async function refreshConfig() {
 }
 
 async function refreshDocuments() {
-  const res = await fetch(`${API}/documents`);
+  const res = await fetch(`${API}/documents?session_id=${SESSION_ID}`);
   const docs = await res.json();
   const el = document.getElementById("documents-list");
   if (docs.length === 0) {
@@ -38,7 +44,7 @@ async function refreshDocuments() {
 }
 
 async function refreshMatches() {
-  const res = await fetch(`${API}/matches`);
+  const res = await fetch(`${API}/matches?session_id=${SESSION_ID}`);
   const matches = await res.json();
   const el = document.getElementById("matches-list");
   if (matches.length === 0) {
@@ -88,7 +94,7 @@ document.getElementById("upload-form").addEventListener("submit", async (e) => {
   const res = await fetch(`${API}/documents`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ filename, author, text }),
+    body: JSON.stringify({ filename, author, text, session_id: SESSION_ID }),
   });
 
   if (!res.ok) {

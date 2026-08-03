@@ -31,18 +31,21 @@ def index():
 
 @app.route("/api/stats")
 def stats():
-    return jsonify(db.get_stats())
+    session_id = request.args.get("session_id", "anonymous")
+    return jsonify(db.get_stats(session_id))
 
 
 @app.route("/api/documents", methods=["GET"])
 def list_documents():
-    rows = db.get_all_documents()
+    session_id = request.args.get("session_id", "anonymous")
+    rows = db.get_all_documents(session_id)
     return jsonify([dict(r) for r in rows])
 
 
 @app.route("/api/documents", methods=["POST"])
 def upload_document():
     data = request.get_json(force=True)
+    session_id = data.get("session_id", "anonymous")
     filename = (data.get("filename") or "untitled.txt").strip()
     author = (data.get("author") or "").strip()
     text = data.get("text", "")
@@ -52,7 +55,7 @@ def upload_document():
 
     shingles = algo.get_shingles(text)
     signature = hasher.signature(shingles)
-    doc_id = db.insert_document(filename, author, text, len(shingles), signature)
+    doc_id = db.insert_document(filename, author, text, len(shingles), signature, session_id)
 
     # --- LSH bucketing ---
     bands = algo.lsh_bands(signature)
@@ -60,7 +63,7 @@ def upload_document():
 
     candidate_ids = set()
     for band_idx, key in bands:
-        for other_id in db.find_bucket_matches(band_idx, key, doc_id):
+        for other_id in db.find_bucket_matches(band_idx, key, doc_id, session_id):
             candidate_ids.add(other_id)
 
     db.insert_bucket_entries(bucket_entries)
@@ -103,7 +106,8 @@ def document_matches(doc_id):
 
 @app.route("/api/matches")
 def all_matches():
-    rows = db.get_all_flagged_matches()
+    session_id = request.args.get("session_id", "anonymous")
+    rows = db.get_all_flagged_matches(session_id)
     return jsonify([dict(r) for r in rows])
 
 
