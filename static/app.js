@@ -29,7 +29,10 @@ async function refreshDocuments() {
         <div class="doc-name">${escapeHtml(d.filename)}</div>
         <div class="doc-meta">${d.author ? escapeHtml(d.author) + " · " : ""}${d.shingle_count} shingles</div>
       </div>
-      <div class="doc-meta">#${d.id}</div>
+      <div class="doc-meta">
+        #${d.id}
+        <span class="delete-btn" onclick="deleteDocument(${d.id})" title="Delete document">×</span>
+      </div>
     </div>
   `).join("");
 }
@@ -59,10 +62,24 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+async function deleteDocument(id) {
+  if (!confirm("Delete this document?")) return;
+  await fetch(`${API}/documents/${id}`, { method: "DELETE" });
+  await Promise.all([refreshStats(), refreshDocuments(), refreshMatches()]);
+}
+
 document.getElementById("upload-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const filename = document.getElementById("f-filename").value.trim();
+  let filename = document.getElementById("f-filename").value.trim();
   const author = document.getElementById("f-author").value.trim();
+  
+  // Auto-correct typo from comma to dot
+  filename = filename.replace(/,txt$/, ".txt");
+  // Enforce .txt extension
+  if (filename && !filename.endsWith(".txt")) {
+    filename += ".txt";
+  }
+
   const text = document.getElementById("f-text").value;
   const resultLine = document.getElementById("upload-result");
 

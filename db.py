@@ -177,3 +177,15 @@ def get_stats():
         "max_possible_pairs": max_possible,
         "flagged_pairs": flagged_count,
     }
+
+
+def delete_document(doc_id):
+    conn = get_conn()
+    # 1. Delete associated similarity results
+    conn.execute("DELETE FROM similarity_results WHERE doc_a_id = ? OR doc_b_id = ?", (doc_id, doc_id))
+    # 2. Delete LSH bucket entries
+    conn.execute("DELETE FROM lsh_buckets WHERE document_id = ?", (doc_id,))
+    # 3. Delete the document itself
+    conn.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
+    conn.commit()
+    conn.close()

@@ -118,5 +118,11 @@ def config():
     })
 
 
+@app.route("/api/documents/<int:doc_id>", methods=["DELETE"])
+def delete_document(doc_id):
+    db.delete_document(doc_id)
+    return jsonify({"success": True})
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

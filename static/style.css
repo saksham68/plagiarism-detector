@@ -285,7 +285,18 @@ button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 }
 
 .doc-row .doc-name { font-weight: 600; }
-.doc-row .doc-meta { color: var(--ink-soft); font-size: 11px; }
+.doc-row .doc-meta { color: var(--ink-soft); font-size: 11px; display: flex; align-items: center; gap: 8px; }
+
+.delete-btn {
+  color: var(--stamp);
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  line-height: 1;
+}
+.delete-btn:hover { transform: scale(1.2); }
+.doc-row:hover .delete-btn { opacity: 1; }
 
 .empty {
   font-size: 12.5px;
