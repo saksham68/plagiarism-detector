@@ -160,6 +160,45 @@ def compare_docs(doc_a_id, doc_b_id):
         "doc_b": {"filename": doc_b["filename"], "html": " ".join(out2)}
     })
 
+@app.route("/api/rings")
+def get_rings():
+    session_id = request.args.get("session_id", "anonymous")
+    matches = db.get_all_flagged_matches(session_id)
+    
+    from collections import defaultdict
+    graph = defaultdict(set)
+    doc_info = {}
+    
+    # 1. Build Adjacency List (Graph)
+    for m in matches:
+        a = m["doc_a_id"]
+        b = m["doc_b_id"]
+        graph[a].add(b)
+        graph[b].add(a)
+        doc_info[a] = {"id": a, "filename": m["a_filename"]}
+        doc_info[b] = {"id": b, "filename": m["b_filename"]}
+        
+    visited = set()
+    rings = []
+    
+    # 2. Iterative Depth First Search (DFS)
+    for node in graph:
+        if node not in visited:
+            component = []
+            stack = [node]
+            while stack:
+                curr = stack.pop()
+                if curr not in visited:
+                    visited.add(curr)
+                    component.append(doc_info[curr])
+                    for neighbor in graph[curr]:
+                        if neighbor not in visited:
+                            stack.append(neighbor)
+            if len(component) > 1:
+                rings.append(component)
+                
+    return jsonify(rings)
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

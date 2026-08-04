@@ -62,6 +62,25 @@ async function refreshMatches() {
   `).join("");
 }
 
+async function refreshRings() {
+  const res = await fetch(`${API}/rings?session_id=${SESSION_ID}`);
+  const rings = await res.json();
+  const el = document.getElementById("rings-list");
+  if (rings.length === 0) {
+    el.innerHTML = `<p class="empty">No rings detected.</p>`;
+    return;
+  }
+  
+  el.innerHTML = rings.map((ring, idx) => `
+    <div class="ring-card">
+      <div class="ring-title">🚨 Cheating Ring ${idx + 1} (${ring.length} documents)</div>
+      <div class="ring-nodes">
+        ${ring.map(doc => `<span class="ring-doc" title="ID: ${doc.id}">${escapeHtml(doc.filename)}</span>`).join(" ⟷ ")}
+      </div>
+    </div>
+  `).join("");
+}
+
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str ?? "";
@@ -89,7 +108,7 @@ function closeModal() {
 async function deleteDocument(id) {
   if (!confirm("Delete this document?")) return;
   await fetch(`${API}/documents/${id}`, { method: "DELETE" });
-  await Promise.all([refreshStats(), refreshDocuments(), refreshMatches()]);
+  await Promise.all([refreshStats(), refreshDocuments(), refreshMatches(), refreshRings()]);
 }
 
 document.getElementById("upload-form").addEventListener("submit", async (e) => {
@@ -129,9 +148,9 @@ document.getElementById("upload-form").addEventListener("submit", async (e) => {
   document.getElementById("f-filename").value = "";
   document.getElementById("f-author").value = "";
 
-  await Promise.all([refreshStats(), refreshDocuments(), refreshMatches()]);
+  await Promise.all([refreshStats(), refreshDocuments(), refreshMatches(), refreshRings()]);
 });
 
 (async function init() {
-  await Promise.all([refreshStats(), refreshConfig(), refreshDocuments(), refreshMatches()]);
+  await Promise.all([refreshStats(), refreshConfig(), refreshDocuments(), refreshMatches(), refreshRings()]);
 })();
