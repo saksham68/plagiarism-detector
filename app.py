@@ -127,6 +127,39 @@ def delete_document(doc_id):
     db.delete_document(doc_id)
     return jsonify({"success": True})
 
+@app.route("/api/compare/<int:doc_a_id>/<int:doc_b_id>")
+def compare_docs(doc_a_id, doc_b_id):
+    session_id = request.args.get("session_id", "anonymous")
+    doc_a = db.get_document(doc_a_id)
+    doc_b = db.get_document(doc_b_id)
+    
+    if not doc_a or not doc_b or doc_a["session_id"] != session_id or doc_b["session_id"] != session_id:
+        return jsonify({"error": "Documents not found or unauthorized"}), 404
+        
+    import difflib
+    words1 = doc_a["raw_text"].split()
+    words2 = doc_b["raw_text"].split()
+    
+    s = difflib.SequenceMatcher(None, words1, words2)
+    out1, out2 = [], []
+    
+    for tag, i1, i2, j1, j2 in s.get_opcodes():
+        if tag == 'equal':
+            if i2 - i1 >= 3:
+                out1.append(f"<mark>{' '.join(words1[i1:i2])}</mark>")
+                out2.append(f"<mark>{' '.join(words2[j1:j2])}</mark>")
+            else:
+                out1.append(' '.join(words1[i1:i2]))
+                out2.append(' '.join(words2[j1:j2]))
+        else:
+            out1.append(' '.join(words1[i1:i2]))
+            out2.append(' '.join(words2[j1:j2]))
+            
+    return jsonify({
+        "doc_a": {"filename": doc_a["filename"], "html": " ".join(out1)},
+        "doc_b": {"filename": doc_b["filename"], "html": " ".join(out2)}
+    })
+
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)

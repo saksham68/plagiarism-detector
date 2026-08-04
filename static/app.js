@@ -52,7 +52,7 @@ async function refreshMatches() {
     return;
   }
   el.innerHTML = matches.map(m => `
-    <div class="match-card">
+    <div class="match-card clickable" onclick="compareDocs(${m.doc_a_id}, ${m.doc_b_id})">
       <div class="match-pair">
         <div class="names">${escapeHtml(m.a_filename)} ⟷ ${escapeHtml(m.b_filename)}</div>
         <div class="sub">docs #${m.doc_a_id} / #${m.doc_b_id}</div>
@@ -66,6 +66,24 @@ function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str ?? "";
   return div.innerHTML;
+}
+
+async function compareDocs(idA, idB) {
+  const res = await fetch(`${API}/compare/${idA}/${idB}?session_id=${SESSION_ID}`);
+  if (!res.ok) return alert("Error loading comparison");
+  const data = await res.json();
+  
+  document.getElementById("modal-doc-a-title").textContent = data.doc_a.filename;
+  document.getElementById("modal-doc-a-body").innerHTML = data.doc_a.html;
+  
+  document.getElementById("modal-doc-b-title").textContent = data.doc_b.filename;
+  document.getElementById("modal-doc-b-body").innerHTML = data.doc_b.html;
+  
+  document.getElementById("compare-modal").classList.remove("hidden");
+}
+
+function closeModal() {
+  document.getElementById("compare-modal").classList.add("hidden");
 }
 
 async function deleteDocument(id) {

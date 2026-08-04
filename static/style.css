@@ -321,3 +321,94 @@ button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* --- Modal Styles --- */
+.hidden { display: none !important; }
+
+#compare-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.modal-content {
+  background: var(--paper);
+  width: 100%;
+  max-width: 1100px;
+  max-height: 85vh;
+  border-radius: 4px;
+  box-shadow: 0 24px 50px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(42,35,28,0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, var(--paper), var(--paper-dim));
+}
+
+.modal-header h2 {
+  font-family: 'Source Serif 4', serif;
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-btn {
+  background: transparent;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 8px;
+  margin: 0;
+}
+.close-btn:hover { background: transparent; color: var(--stamp); transform: scale(1.1); }
+
+.modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  flex: 1;
+}
+
+.doc-col {
+  padding: 24px;
+  overflow-y: auto;
+  border-right: 1px dashed rgba(42,35,28,0.15);
+}
+.doc-col:last-child { border-right: none; }
+
+.doc-col h3 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--teal);
+  margin: 0 0 16px 0;
+}
+
+.doc-text {
+  font-family: 'Source Serif 4', serif;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+mark {
+  background: rgba(161, 61, 43, 0.2);
+  color: #8c3324;
+  padding: 2px 0;
+  font-weight: 600;
+  border-radius: 2px;
+}
+
+.clickable { cursor: pointer; transition: transform 0.1s ease, box-shadow 0.1s ease; }
+.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
